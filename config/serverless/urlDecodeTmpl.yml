@@ -1,0 +1,41 @@
+|
+    #if ($context.httpMethod == "POST")
+      #set($rawAPIData = $input.path('$'))
+      #set($rawAPIData = $rawAPIData.replace('"', '\"').replace('%40', '@'))
+    #else
+      #set($rawAPIData = "")
+    #end
+
+    #set($countAmpersands = $rawAPIData.length() - $rawAPIData.replace("&", "").length())
+    #if ($countAmpersands == 0)
+      #set($rawPostData = $rawAPIData + "&")
+    #end
+
+    #set($tokenisedAmpersand = $rawAPIData.split("&"))
+    #set($tokenisedEquals = [])
+
+    #foreach( $kvPair in $tokenisedAmpersand )
+      #set($countEquals = $kvPair.length() - $kvPair.replace("=", "").length())
+      #if ($countEquals == 1)
+        #set($kvTokenised = $kvPair.split("="))
+      #if ($kvTokenised[0].length() > 0)
+        #set($devNull = $tokenisedEquals.add($kvPair))
+      #end
+      #end
+    #end
+    {
+    #foreach( $kvPair in $tokenisedEquals )
+      #set($kvTokenised = $kvPair.split("="))
+      #if($kvTokenised.size() == 2 && $kvTokenised[1].length() > 0)
+        #set($kvValue = $kvTokenised[1])
+      #else
+        #set($kvValue = "")
+      #end
+      #if( $foreach.hasNext )
+        #set($itemDelimiter = ",")
+      #else
+        #set($itemDelimiter = "")
+      #end
+    "$kvTokenised[0]" : "$kvValue"$itemDelimiter
+    #end
+    }

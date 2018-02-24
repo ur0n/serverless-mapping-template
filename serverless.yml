@@ -1,0 +1,46 @@
+service: my-service
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+
+plugins:
+  - serverless-offline
+
+custom:
+  urlDecode: ${file(./config/serverless/urlDecodeTmpl.yml)
+  # query string
+  idFromParams: '"id": "$input.params("id")"'
+  nameFromParams: '"name": "$input.params("name")"'
+  # json body
+  idFromJson: '"id": $input.json("$.id")'
+  nameFromJson: '"name": $input.json("$.name")'
+
+functions:
+  getHello:
+    handler: handler.hello
+    events:
+      - http:
+          path: /hello
+          method: get
+          integration: lambda
+          request:
+            template:
+              application/json: '{
+                ${self:custom.idFromParams},
+                ${self:custom.nameFromParams}
+              }'
+  postHello:
+    handler: handler.hello
+    events:
+      - http:
+          path: /hello
+          method: post
+          integration: lambda
+          request:
+            template:
+              application/x-www-form-urlencoded: ${self:custom.urlDecode}
+              application/json: '{
+                ${self:custom.idFromJson},
+                ${self:custom.nameFromJson}
+              }'
